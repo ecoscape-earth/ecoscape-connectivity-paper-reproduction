@@ -1,8 +1,6 @@
 # Bird Mapping Project
 
-The code in this repository generates habitat and terrrain information for birds, 
-models habitat quality and connectivity, 
-and evaluates the resulting habitat quality using eBird data. 
+The code in this repository enables the reproduction of the results of the EcoScape paper. 
 
 ## Contributors (alphabetically)
 
@@ -10,53 +8,98 @@ and evaluates the resulting habitat quality using eBird data.
 * Luca de Alfaro
 * Artie Nazarov
 * Natalia Ocampo-Peñuela
-* Tyler Sorensen
 * Jasmine Tai
 * Natalie Valett
 
-## Code Flow 
+## Data
 
-Generally, before running a notebook, make your own copy of it, so as not to conflict with anybody else's code. 
+You will need two datasets. 
 
-Below, we describe each step of code, with in parentheses a nickname for the step. 
-For each step, we say depend(x, y) to mean that it depends on steps x, y being completed previously. 
+* `CA-EcoScape-Paper.zip` : this provides the habitat and terrain info for the birds, as well as the terrain permeabilities.  You can regenerate this data with the appropriate packages, but it's very convenient to have. 
+* `bird-data-uswest.db` : An Sqlite database containing all eBird observations in the Western part of the US. As we are not allowed to redistribute eBird data, you will have to build this database yourself. You can find detailed instructions in the `ebird_data` folder.  It is a process that may take a few days.  This database is not strictly necessary.  It is used to generate, in California, the list of locations where people birded, along with the average sightings of a bird per checklist in those locations.  We provide these location lists; the database is only necessary if you wish to recreate them. 
 
-## Setup and Input Files
+## Where to put Data and Computation
 
-Before one starts, one needs to take a look at `ecoscape_`.  
+You can compute either on Google Colab, or locally, or both. 
+
+You need GPUs for the ecoscape-connectivity package.  You can use Colab for this, or you can run locally if you have a local GPU. 
+
+You need to run locally the `GenerateValidationData.ipynb` notebook.  This because you need to access a large Sqlite database, and on Colab this does not work well.  Also, this step takes a long time, and requires no GPU, so it is more suited to be run locally. 
+
+The code, either local or on Colab, needs access to the `CA-EcoScape-Paper` data. 
+You can have this data available both on Colab, and locally, by placing it on Google Drive, and by using Drive for Desktop to keep in synch the data on Google Drive with the data on the local file system. 
+This approach is the one we followed for the paper. 
+
+## Notebooks
+
+Many notebooks at the beginning define these constants; you may need to change them according to where you want to run the code. 
+
+* `IS_LOCAL` : indicates whether you are running the code locally or on Google Colab. 
+* `REMOTE_PATH` : Path on Google Drive to the folder where you put the CA-EcoScape-Paper data. 
+* `LOCAL_PATH`: Path in the local file system where a copy of CA-EcoScape-Paper can be found. 
+
+## File locations. 
+
+Before one starts, it is useful to take a look at `ecoscape_utilities.BirdRun`.
+That class defined the local   
 That file describes the location of every input and output. 
 There: 
 
 * A bird name is its English name, such as "Acorn Woodpecker". 
-* A bird nickname is its eBird API nickname, such as "acowoo". 
+* A bird nickname is its eBird API nickname, such as "acowoo". The birds we have are: 
+  * `acowoo`: Acorn Woodpecker
+  * `oaktit308`: Oak Titmouse (the `308` is there for historical reasons; it is a variation where terrain type 308, which in California is sparse Oak woodland, is considered as possible habitat for the Oak Titmouse).
+  * `stejay`: This is the Steller Jay. 
+* `run_name` is the name of one of the runs we did for the paper.  We did three main runs: 
+  * `Jun8`: This run produced all the data used for validation.  The run computed connectivity layers for many combinations of gap crossing and dispersal distances.  To save time, no flow layer was produced. 
+  * `Jun9-gradient`: This run produced flow layers.  We used the flow layer for Acorn Woodpecker for the figure in the paper. 
+  * `Aug24-timing`: This run was used simply to obtain accurate measurements of running time and result variance. 
 
 The input files are the following, where `{bird}` is the bird nickname. All of these file names are relative to a root directory, which can be specified in the code: 
 
-* `Data/CA/Terrain/terrain.tif` is the terrain description for California, at 300m resolution. 
-* `Data/CA/{bird}/habitat.tif` is the habitat raster for each bird (this can be regenerated with the Generating Habitats step below). 
-* `Data/CA/{bird}/resistance.csv` is the raw terrain resistance for each bird. This is obtained from IUCN data, and will be refined below. 
+* `Terrain/iucn_habclass_lvl2_us_300_near_cropped.tif` is the terrain description for California, at 300m resolution. 
+* `{bird}/habitat.tif` is the habitat raster for each bird (this can be regenerated with the Generating Habitats step below). 
+* `{bird}/Output/{run_name}/transmission_refined_1.csv` is the landscape permeability dictionary.  This is in fact the same for all runs. 
 
 In addition to these, there are files that are generated by our code.  These contain parameter values in the filenames, often; these are: 
 
-* `run_name` is generally "Default". 
-* `num_spreads` is the number of hops a bird can do during dispersal. 
-* `hop_distance` is the length of a bird hop, measured in squares. Each square has an edge of 300m, so a hop distance of 2 corresponds to 600m. 
-* `num_simulations` is the number of simulations performed for the spread process; a typical value is several hundreds. 
+* `num_spreads` is the number of gap-crossings a bird can do during dispersal. 
+* `hop_distance` is the gap-crossing distance for the bird, measured in pixels. Each square has an edge of 300m, so a hop distance of 2 corresponds to 600m. 
+* `num_simulations` is the number of simulations performed for the spread process; a typical value is 400. 
 
 The main files generated are:   
 
-* `Data/CA/{bird}/terrain_hist.json` and `Data/CA/{bird}/terrain_hist.csv` are histogram of bird sightings according to terrain type.  They are used to refine the terrain resistance, and are generated by one of the steps below.  The two files contain the same information, in different formats. 
-* `Data/CA/{bird}/Output/{run_name}/repopulation_spreads_{num_spreads}_hop_{hop_distance}_sims_{num_simulations}.tif` contains the output of the connectivity, in geotiff format.  These are values between 0 and 1, multiplied by 255 and encoded as integers. 
-* `Data/CA/{bird}/Output/{run_name}/gradient_spreads_{num_spreads}_hop_{hop_distance}_sims_{num_simulations}.tif` contains the gradient computed for the repopulation, in geotiff format.  For a repopulation value of $r$, we output $20 log_10(1 + r)$, clipped between 0 and 255. 
-* `Data/CA/{bird}/Observations/CA_all_len_{l}_2012-01-01-2018-12-31_20000.csv` contain data on all bird observations in checklists of length at least `l` in a given date range, limited to 20,000 observation locations if necessary.  Generally, for the given date range, there were a few more than 18,000 observation locations (technically, squares; see `ebird_data/README.md`).
-* `Data/CA/{bird}/Output/{run_name}/obs_{num_spreads}_hop_{hop_distance}_sims_{num_simulations}.csv` is a Pandas dataframe containing data with the repopulation value, and sightings, of a bird at the various locations.  These dataframes are read by the code that generates the graphs. 
- 
-## Generating Habitats 
+* `{bird}/Output/{run_name}/repopulation_spreads_{num_spreads}_hop_{hop_distance}_sims_{num_simulations}_texp_1.tif` contains the output connectivity layer. 
+* `{bird}/Output/{run_name}/gradient_spreads_{num_spreads}_hop_{hop_distance}_sims_{num_simulations}_texp_1.tif` contains the output flow layer.
+* `Data/CA/{bird}/Observations/CA_all_len_{l}_2012-01-01-2018-12-31_20000.csv` contain data on all bird observations in checklists of length at least `l` in a given date range, limited to 20,000 observation locations if necessary.  Generally, for the given date range, there were a few more than 18,000 observation locations (technically, squares; see `ebird_data/README.md`).  We used value 2 for `l`. 
+* `Data/CA/{bird}/Output/{run_name}/obs_{num_spreads}_hop_{hop_distance}_sims_{num_simulations}.csv` is a Pandas dataframe containing data with the repopulation value, and sightings, of a bird at the various locations.  These dataframes are read by the code that generates the validation graphs. 
+
+## Reproducing the results
+
+## Generating Terrain and Habitats 
 
 > Step (habitat), depends(). 
 
-The code for generating habitats is in the `habitat_generation` directory; please see the 
-[README](habitat_generation/README.md) file there. 
+This uses the `Jasmine_complete_here.ipynb` notebook. 
+We provide already the results for this step, so it can be skipped if desired. 
+
+## Prepare the observation data for the validation
+
+Step (prepare_validation), depends(habitat). 
+
+Run the notebook `GenerateValidationData.ipynb`
+
+You need to decide which birds to process, and which combination of ebird walked distance, min checklists per square, whether to use small (1Km) or big (10Km) squares, etc. 
+
+For the paper, we run it with the following parameters:
+
+```
+max_distances = [2]
+date_range = ("2012-01-01", "2018-12-31")
+breeding = True
+state = "US-CA"
+num_sample_squares = 20000 # Sampling number for the squares. 
+```
 
 ## Generating the transmissibility of birds in terrain
 
@@ -93,23 +136,6 @@ You need to choose which birds to process, and with what parameters.
 If you have a GPU you can also run this step locally, but running the setp 
 without a GPU will be rather slow.   
 
-### Prepare the observation data for the validation
-
-Step (prepare_validation), depends(habitat). 
-
-Run the notebook `GenerateValidationData.ipynb`
-
-You need to decide which birds to process, and which combination of ebird walked distance, min checklists per square, whether to use small (1Km) or big (10Km) squares, etc. 
-
-For the paper, we run it with the following parameters:
-
-```
-max_distances = [2]
-date_range = ("2012-01-01", "2018-12-31")
-breeding = True
-state = "US-CA"
-num_sample_squares = 20000 # Sampling number for the squares. 
-```
 
 ### Generates the validation dataframes
 
