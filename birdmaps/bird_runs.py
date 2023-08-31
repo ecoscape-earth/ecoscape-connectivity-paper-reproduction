@@ -40,7 +40,7 @@ class BirdRun(object):
             # Input ,
             terrain_fn = os.path.join(self.files_path, "Terrain/iucn_habclass_lvl2_us_300_near_cropped.tif"),
             habitat_fn = os.path.join(self.files_path, "{bird}/habitat.tif".format(**d)),
-            transmission_fn = os.path.join(self.files_path, "{bird}/Output/{run_name}/transmission_refined_{transmission_exponent}.csv".format(**d)),
+            transmission_fn = os.path.join(self.files_path, "{bird}/transmission_refined_{transmission_exponent}.csv".format(**d)),
             resistance_original_fn = os.path.join(self.files_path, "{bird}/resistance.csv".format(**d)),
             terrain_histogram_json_fn = os.path.join(self.files_path, "{bird}/terrain_hist.json".format(**d)),
             terrain_histogram_csv_fn = os.path.join(self.files_path, "{bird}/terrain_hist.csv".format(**d)),

@@ -110,7 +110,7 @@ num_sample_squares = 20000 # Sampling number for the squares.
 This step is not strictly necessary, as we provide the output already. 
 If you have used IUCN data to obtain `{bird}/resistance.csv`, then you  can run `RefineResistanceWithForestTerrain.ipynb` to generate the values of terrain permeability we use. 
 
-### Run the repopulation
+### Compute the connectivity and flow layers. 
 
 Step (repopulation), depends(transmission). 
 
@@ -120,9 +120,12 @@ Step (repopulation), depends(transmission).
 * Run the notebook (you only need to run the run part)
 
 You need to choose which birds to process, and with what parameters. 
-If you have a GPU you can also run this step locally, but running the setp 
-without a GPU will be rather slow.   
-
+This is done in the cell "Bird Run Definition". 
+The notebook we give does the most complete runs; these will take several hours even with a fast GPU, as we run the process for a large combination of parameters. 
+You can speed up the process by selecting only some gap lengths, number of gaps, or by turning off the 
+production of the gradient. 
+If you have a GPU you can also run this step locally.   
+We recommend running this on A100 GPUs. 
 
 ### Generates the validation dataframes
 
