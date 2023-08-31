@@ -74,18 +74,20 @@ The main files generated are:
 * `Data/CA/{bird}/Observations/CA_all_len_{l}_2012-01-01-2018-12-31_20000.csv` contain data on all bird observations in checklists of length at least `l` in a given date range, limited to 20,000 observation locations if necessary.  Generally, for the given date range, there were a few more than 18,000 observation locations (technically, squares; see `ebird_data/README.md`).  We used value 2 for `l`. 
 * `Data/CA/{bird}/Output/{run_name}/obs_{num_spreads}_hop_{hop_distance}_sims_{num_simulations}.csv` is a Pandas dataframe containing data with the repopulation value, and sightings, of a bird at the various locations.  These dataframes are read by the code that generates the validation graphs. 
 
-## Reproducing the results
+## Reproducing The Results
 
-## Generating Terrain and Habitats 
+### Generating Terrain and Habitats 
 
 > Step (habitat), depends(). 
 
 This uses the `Jasmine_complete_here.ipynb` notebook. 
 We provide already the results for this step, so it can be skipped if desired. 
 
-## Prepare the observation data for the validation
+### Prepare the observation data for the validation
 
 Step (prepare_validation), depends(habitat). 
+
+Note: This step is optional.  It required the database that contains all ebird observations, mentioned above.  If you do not have the database, you can skip this step, as we already include the output. 
 
 Run the notebook `GenerateValidationData.ipynb`
 
@@ -101,27 +103,12 @@ state = "US-CA"
 num_sample_squares = 20000 # Sampling number for the squares. 
 ```
 
-## Generating the transmissibility of birds in terrain
+### Generating the terrain permeability
 
 > Step (transmission), depends(habitat). 
 
-This step is necessary because the values of terrain resistance we obtain
-from IUCN data are for a terrain classification that is not closely tailored 
-to California (or to the terrain one might be studying). 
-Hence, we lower the terrain resistance of terrain types in which
-many birds have been sighted. 
-
-This is done in two steps.
-
-In the first step, we measure the number of sightings in each type of terrain. 
-This is done in the `TerrainHistograms.ipynb` notebook. 
-The notebook needs access to the databases generated from ebird data. 
-
-The second step consists in using the sightings information to refine the resistance. 
-This is done in the notebook `RefineResistanceFromEbird.ipynb` 
-If you change the explonent used for the terrain transmission refinement, namely, 
-the `merge_exponent` in `merge_transmission_forest_birds(resistance_d, observation_d, merge_exponent)`, you need only rerun this last step, which is quite fast.
-Of course, you then need to re-run the repopulation. 
+This step is not strictly necessary, as we provide the output already. 
+If you have used IUCN data to obtain `{bird}/resistance.csv`, then you  can run `RefineResistanceWithForestTerrain.ipynb` to generate the values of terrain permeability we use. 
 
 ### Run the repopulation
 
