@@ -16,7 +16,7 @@ The code in this repository enables the reproduction of the results of the EcoSc
 You will need two datasets. 
 
 * `CA-EcoScape-Paper.zip` : this provides the habitat and terrain info for the birds, as well as the terrain permeabilities.  You can regenerate this data with the appropriate packages, but it's very convenient to have. 
-* `bird-data-uswest.db` : An Sqlite database containing all eBird observations in the Western part of the US. As we are not allowed to redistribute eBird data, you will have to build this database yourself. You can find detailed instructions in the `ebird_data` folder.  It is a process that may take a few days.  This database is not strictly necessary.  It is used to generate, in California, the list of locations where people birded, along with the average sightings of a bird per checklist in those locations.  We provide these location lists; the database is only necessary if you wish to recreate them. 
+* `bird-data-uswest.db` : An Sqlite database containing all eBird observations in the Western part of the US. As we are not allowed to redistribute eBird data, you will have to build this database yourself. You can find [detailed instructions](ebird_data/README.md) in the `ebird_data` folder.  It is a process that may take a few days.  This database is not strictly necessary.  It is used to generate, in California, the list of locations where people birded, along with the average sightings of a bird per checklist in those locations.  We provide these location lists; the database is only necessary if you wish to recreate them. 
 
 ## Where to put Data and Computation
 
@@ -89,7 +89,7 @@ Step (prepare_validation), depends(habitat).
 
 Note: This step is optional.  It required the database that contains all ebird observations, mentioned above.  If you do not have the database, you can skip this step, as we already include the output. 
 
-Run the notebook `GenerateValidationData.ipynb`
+Run the notebook [`GenerateValidationData.ipynb`](GenerateValidationData.ipynb)
 
 You need to decide which birds to process, and which combination of ebird walked distance, min checklists per square, whether to use small (1Km) or big (10Km) squares, etc. 
 
@@ -108,16 +108,13 @@ num_sample_squares = 20000 # Sampling number for the squares.
 > Step (transmission), depends(habitat). 
 
 This step is not strictly necessary, as we provide the output already. 
-If you have used IUCN data to obtain `{bird}/resistance.csv`, then you  can run `RefineResistanceWithForestTerrain.ipynb` to generate the values of terrain permeability we use. 
+If you have used IUCN data to obtain `{bird}/resistance.csv`, then you  can run [`RefineResistanceWithForestTerrain.ipynb`](RefineResistanceWithForestTerrain.ipynb) to generate the values of terrain permeability we use. 
 
 ### Compute the connectivity and flow layers. 
 
 Step (repopulation), depends(transmission). 
 
-* Upload to colab the notebook `Connectivity.ipynb`
-* Change `IS_LOCAL = False`
-* Change `DO_RUN = True`
-* Run the notebook (you only need to run the run part)
+Upload to colab the notebook [`ConnectivityAndFlow.ipynb`](ConnectivityAndFlow.ipynb) and run it. 
 
 You need to choose which birds to process, and with what parameters. 
 This is done in the cell "Bird Run Definition". 
