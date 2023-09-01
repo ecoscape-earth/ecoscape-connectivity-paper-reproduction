@@ -163,4 +163,8 @@ We give here the notebook that produced the timing results, with its original ou
 If the type of GPUs or CPUs available on Colab changes, these numbers might change. 
 The numbers were obtained on August 24, 2023, on A100 GPUs. 
 
+### Estimate Accuracy
+
+The notebook [`EstimateAccuracy.ipynb`](EstimateAccuracy.ipynb) is the one we used to estimate the accuracy (standard deviation) with which the connectivity of the flow layer is computed.  It is here reproduces as-is, with the original outputs.  
+This notebook needs to be run on Colab, or on a machine with fast GPUs; we used A100 GPUs on Colab. 
 
