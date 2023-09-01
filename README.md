@@ -172,3 +172,9 @@ The numbers were obtained on August 24, 2023, on A100 GPUs.
 The notebook [`EstimateAccuracy.ipynb`](EstimateAccuracy.ipynb) is the one we used to estimate the accuracy (standard deviation) with which the connectivity of the flow layer is computed.  It is here reproduces as-is, with the original outputs.  
 This notebook needs to be run on Colab, or on a machine with fast GPUs; we used A100 GPUs on Colab. 
 
+### Analyze Checklist Noise
+
+This is a step that requires the database. 
+
+The notebook [`AnalyzeNoise.ipynb`](AnalyzeNoise.ipynb) analyzes the noise in checklists, determining whether location noise or checklist noise is predominant. 
+We provide it as run, with the results used for the paper. 
