@@ -11,11 +11,18 @@ The code in this repository enables the reproduction of the results of the EcoSc
 * Jasmine Tai
 * Natalie Valett
 
+## Repository Organization
+
+* `birdmaps` contains some code that is used specifically for the paper, and that is imported in the notebooks. 
+* `ebird_data` contains information and scripts for generating a database of bird observations.  The database is optional; it is needed to reproduce the initial step of our validation. 
+* `data` contains data that will make it easier for you to reproduce the results.  In essence, in `data` you will put a copy of the entire data generated, so that you can decide whether to verify all results, or only a part. 
+* The notebooks cited in this README are all at top level in this repository. 
+
 ## Data
 
 You will need two datasets. 
 
-* `CA-EcoScape-Paper.zip` : this provides the habitat and terrain info for the birds, as well as the terrain permeabilities.  You can regenerate this data with the appropriate packages, but it's very convenient to have. 
+* `CA-EcoScape-Paper.zip` : this provides the habitat and terrain info for the birds, as well as the terrain permeabilities.  You can regenerate this data with the appropriate packages, but it's very convenient to have.  Download the file, put it into the `data` folder, and unzip it. 
 * `bird-data-uswest.db` : An Sqlite database containing all eBird observations in the Western part of the US. As we are not allowed to redistribute eBird data, you will have to build this database yourself. You can find [detailed instructions](ebird_data/README.md) in the `ebird_data` folder.  It is a process that may take a few days.  This database is not strictly necessary.  It is used to generate, in California, the list of locations where people birded, along with the average sightings of a bird per checklist in those locations.  We provide these location lists; the database is only necessary if you wish to recreate them. 
 
 ## Where to put Data and Computation
