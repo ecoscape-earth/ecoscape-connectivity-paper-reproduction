@@ -128,15 +128,17 @@ We recommend running this on A100 GPUs.
 
 Step (validation) depends(prepare_validation, repopulation).
 
-Use the notebook `Validation.ipynb`.  
-This takes a while to run, as it needs to read all the various terrains, and 
-write all the results. 
+In this step, we prepare some data that will facilitate the visualization of the correlation between habitat connectivity, and bird sightings. 
+
+Use the notebook [`Validation.ipynb`](Validation.ipynb).
+In this step, we read the output connectivity layers for the birds, and we correlate the connectivity with the ebird sightings (the information produced in Step (prepare_validation)). 
+The process takes a long time, because for each geographical location computed in Step (prepare_validation), we need to sample the connectivity and habitat layers at the correct pixels, and this is not immediate. For the complete set of runs, this may take some hours.   
+This takes a while to run, as it needs to read all the various terrains, and write all the results. 
 
 ### Display the validation results.
 
 Step (validation_results) depends(validation). 
 
-Use the notebook `DisplayValidationResults.ipynb`.  This is quite fast, and allows
-for tuning the output figures and data to one's desires. 
+Use the notebook `DisplayValidationResults.ipynb`.  This is quite fast, and allows for tuning the output figures and data to one's desires. 
 
 

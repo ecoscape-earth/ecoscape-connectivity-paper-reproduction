@@ -25,7 +25,7 @@ class BirdRun(object):
         self.files_path = data_path
 
     def get_bird_run(self, nickname, bird_name, run_name=None, do_gradient=False, do_validation=False,
-                     hop_distance=4, num_spreads=5, num_simulations=2, transmission_exponent=0.5):
+                     hop_distance=4, num_spreads=5, num_simulations=2, transmission_exponent=1):
         """Given a bird name in 6-letter ebird format, returns the BirdRun object for the bird."""
         d = {"bird": nickname,
              "run_name": run_name or "Standard",
