@@ -173,7 +173,7 @@ The notebook [`EstimateRunningTime.ipynb`](EstimateRunningTime.ipynb) was run on
 
 We give here the notebook that produced the timing results, with its original output. 
 If the type of GPUs or CPUs available on Colab changes, these numbers might change. 
-The numbers were obtained on August 24, 2023, on A100 GPUs. 
+These numbers were obtained on September 21, 2023, on A100 GPUs on Google Colab. 
 
 ### Estimate Accuracy
 
@@ -184,5 +184,5 @@ This notebook needs to be run on Colab, or on a machine with fast GPUs; we used 
 
 This is a step that requires the database. 
 
-The notebook [`AnalyzeNoise.ipynb`](AnalyzeNoise.ipynb) analyzes the noise in checklists, determining whether location noise or checklist noise is predominant. 
+The notebook [`AnalyzeEbirdNoise.ipynb`](AnalyzeEbirdNoise.ipynb) analyzes the noise in checklists, determining whether location noise or checklist noise is predominant. 
 We provide it as run, with the results used for the paper. 
