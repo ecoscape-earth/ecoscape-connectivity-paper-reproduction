@@ -22,7 +22,7 @@ The code in this repository enables the reproduction of the results of the EcoSc
 
 You will need two datasets. 
 
-* [`CA-EcoScape-Paper.zip`](https://drive.google.com/file/d/1szR8edvTmrNWXJYmruavPI7mPNgsUPbs/view?usp=sharing) : this provides the habitat and terrain info for the birds, as well as the terrain permeabilities.  You can regenerate this data with the appropriate packages, but it's very convenient to have.  Download the file, put it into the `data` folder, and unzip it. 
+* [`CA-Final.zip`](https://drive.google.com/file/d/1YUydTycc8nJ7OT8JsaS_ZYnDcOBLGFH0/view?usp=sharing) : this provides the habitat and terrain info for the birds, as well as the terrain permeabilities.  You can regenerate this data with the appropriate packages, but it's very convenient to have.  Download the file, put it into the `data` folder, and unzip it. 
 * `bird-data-uswest.db` : An Sqlite database containing all eBird observations in the Western part of the US. As we are not allowed to redistribute eBird data, you will have to build this database yourself. You can find [detailed instructions](ebird_data/README.md) in the `ebird_data` folder.  It is a process that may take a few days.  
 
 The above database is not strictly necessary.  It is used to generate, in California, the list of locations where people birded, along with the average sightings of a bird per checklist in those locations.  We provide these location lists; the database is only necessary if you wish to recreate them. 
@@ -33,11 +33,9 @@ Additionally, the database is needed to analyze the nature of noise in bird obse
 
 You can compute either on Google Colab, or locally, or both. 
 
-You need GPUs for the ecoscape-connectivity package.  You can use Colab for this, or you can run locally if you have a local GPU. 
+You need GPUs for the ecoscape-connectivity package.  You can use Colab for this, or you can run locally if you have a local GPU.  We used A100 GPUs for many runs.  You should be able to use also T4 GPUs, but they will be somewhat slower, and they might run out of memory with the chosen parameters when flow layers are desired (this could be obviated by changing some parameters such as tile sizes). 
 
-You need to run locally the `GenerateValidationData.ipynb` notebook.  This because you need to access a large Sqlite database, and on Colab this does not work well.  Also, this step takes a long time, and requires no GPU, so it is more suited to be run locally. 
-
-The code, either local or on Colab, needs access to the `CA-EcoScape-Paper` data. 
+The code, either local or on Colab, needs access to the `CA-Final` data. 
 You can have this data available both on Colab, and locally, by placing it on Google Drive, and by using Drive for Desktop to keep in synch the data on Google Drive with the data on the local file system. 
 This approach is the one we followed for the paper. 
 
@@ -52,19 +50,19 @@ Many notebooks at the beginning define these constants; you may need to change t
 ## File locations. 
 
 Before one starts, it is useful to take a look at `ecoscape_utilities.BirdRun`.
-That class defined the local   
 That file describes the location of every input and output. 
 There: 
 
 * A bird name is its English name, such as "Acorn Woodpecker". 
 * A bird nickname is its eBird API nickname, such as "acowoo". The birds we have are: 
   * `acowoo`: Acorn Woodpecker
-  * `oaktit308`: Oak Titmouse (the `308` is there for historical reasons; it is a variation where terrain type 308, which in California is sparse Oak woodland, is considered as possible habitat for the Oak Titmouse).
   * `stejay`: This is the Steller Jay. 
-* `run_name` is the name of one of the runs we did for the paper.  We did three main runs: 
-  * `Jun8`: This run produced all the data used for validation.  The run computed connectivity layers for many combinations of gap crossing and dispersal distances.  To save time, no flow layer was produced. 
-  * `Jun9-gradient`: This run produced flow layers.  We used the flow layer for Acorn Woodpecker for the figure in the paper. 
-  * `Aug24-timing`: This run was used simply to obtain accurate measurements of running time and result variance. 
+* `run_name` is the name of one of the runs we did for the paper.  You can find the results in <bird_nickname>`/Output/`<run_name> . We did the following runs: 
+  * `Paper`: This run produced all the data used for the sensitivity analysis. We run 400 simulations for every gap_crossing and num_spreads parameters. 
+  * `Gradient`: These were the runs for generating connectivity and flow used in the main figure for California; the simulations were run 2000 times to guarantee superior accuracy. 
+  * `Paper10000`: These were the runs done for generating the sightings to connectivity graphs in the paper.  We performed 10000 simulations to have as accurate as possible results for the paper figures. 
+  * `Timing`: This is the run we used to analyze the runtime of the method. 
+  * `Precision`: This is the run we did to analyze the standard deviation of the connectivity and flow.  
 
 The input files are the following, where `{bird}` is the bird nickname. All of these file names are relative to a root directory, which can be specified in the code: 
 
@@ -120,6 +118,7 @@ num_sample_squares = 20000 # Sampling number for the squares.
 
 This step is not strictly necessary, as we provide the output already. 
 If you have used IUCN data to obtain `{bird}/resistance.csv`, then you  can run [`RefineResistanceWithForestTerrain.ipynb`](RefineResistanceWithForestTerrain.ipynb) to generate the values of terrain permeability we use. 
+The output is stored in `{bird}/transmission_refined_1.csv`, which contains the permeability values. 
 
 ### Compute the connectivity and flow layers. 
 
@@ -127,24 +126,31 @@ Step (repopulation), depends(transmission).
 
 Upload to colab the notebook [`ConnectivityAndFlow.ipynb`](ConnectivityAndFlow.ipynb) and run it. 
 
-You need to choose which birds to process, and with what parameters. 
-This is done in the cell "Bird Run Definition". 
-The notebook we give does the most complete runs; these will take several hours even with a fast GPU, as we run the process for a large combination of parameters. 
-You can speed up the process by selecting only some gap lengths, number of gaps, or by turning off the 
-production of the gradient. 
-If you have a GPU you can also run this step locally.   
-We recommend running this on A100 GPUs. 
+We recommend running this on A100 GPUs; the T4 also may work (except it might go out of memory for the flow layer; you can reduce the tile size to 1024 x 1024). 
+There are three cells at the end that do the runs: 
+* `run_birds` does the sensitivity analysis, with 400 simulations, generating the `Paper` output.  This takes about two hours. 
+* `run_birds_details` generates the `Paper10000` output, used for the graphs relating observations to connectivity. This takes less than one hour. 
+* `run_birds_gradient` generates the `Gradient` output, used for the initial figure for the Acorn Woodpecker, connectivity and flow layers. This takes about 3-5 minutes. 
+
+### Compute the current maps with Omniscape. 
+
+You can find in [Omniscape.zip](https://drive.google.com/file/d/1YPiY5zyBAT3qBHOp4vnAHr4EP5FB5Unq/view?usp=sharing) the layers and run definitions for Omniscape.  You may rerun this if you wish; we provide already the results.  See the README file there for more details.  
 
 ### Generates the validation dataframes
 
 Step (validation) depends(prepare_validation, repopulation).
 
-In this step, we prepare some data that will facilitate the visualization of the correlation between habitat connectivity, and bird sightings. 
-
-Use the notebook [`Validation.ipynb`](Validation.ipynb).
 In this step, we read the output connectivity layers for the birds, and we correlate the connectivity with the ebird sightings (the information produced in Step (prepare_validation)). 
 The process takes a long time, because for each geographical location computed in Step (prepare_validation), we need to sample the connectivity and habitat layers at the correct pixels, and this is not immediate. For the complete set of runs, this may take some hours.   
 This takes a while to run, as it needs to read all the various terrains, and write all the results. 
+
+There are various notebooks used in this step: 
+
+* `Validation.ipynb` generates the validation data for the `Paper` run.  This will take about 16 hours.  You can split the notebook, making a copy and commenting out in one copy the `acowoo` (Acorn Woodpecker) and in the other the `stejay` (Steller's Jay); in this way each notebook only takes 8h.  What takes so much time is sampling the geotiffs to read the connectivity values at the eBird checklist locations.  We could cache the pixel coordinates of each location once and forall; that would considerably speed up the process.
+* `Validation10000.ipynb` generates the validation data for the `Paper10000` run. 
+* `ValidationOmniscape.ipynb` generates the validation data for the Omniscape output. 
+
+
 
 ### Display the validation results.
 
