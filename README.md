@@ -186,3 +186,7 @@ This is a step that requires the database.
 
 The notebook [`AnalyzeEbirdNoise.ipynb`](AnalyzeEbirdNoise.ipynb) analyzes the noise in checklists, determining whether location noise or checklist noise is predominant. 
 We provide it as run, with the results used for the paper. 
+
+### Computing FCA
+
+This is done in [`ComputingFCA.ipynb`](ComputingFCA.ipynb); the notebook also computes the percentage error for Acorn Woodpecker in using 400 vs 10000 simulations. 
