@@ -89,7 +89,7 @@ The main files generated are:
 
 > Step (habitat), depends(). 
 
-This uses the `Jasmine_complete_here.ipynb` notebook. 
+This uses the `GenerateLayers.ipynb` notebook to create the habitat layers, landcover matrix layer, and resistance dictionaries for a list of bird species. 
 We provide already the results for this step, so it can be skipped if desired. 
 
 ### Prepare the observation data for the validation
