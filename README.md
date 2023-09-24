@@ -146,8 +146,7 @@ This takes a while to run, as it needs to read all the various terrains, and wri
 
 There are various notebooks used in this step: 
 
-* `Validation.ipynb` generates the validation data for the `Paper` run.  This will take about 16 hours.  You can split the notebook, making a copy and commenting out in one copy the `acowoo` (Acorn Woodpecker) and in the other the `stejay` (Steller's Jay); in this way each notebook only takes 8h.  What takes so much time is sampling the geotiffs to read the connectivity values at the eBird checklist locations.  We could cache the pixel coordinates of each location once and forall; that would considerably speed up the process.
-* `Validation10000.ipynb` generates the validation data for the `Paper10000` run. 
+* `Validation.ipynb` generates the validation data for the EcoScape output.  
 * `ValidationOmniscape.ipynb` generates the validation data for the Omniscape output. 
 
 ### Display the validation results.
