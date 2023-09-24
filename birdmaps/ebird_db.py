@@ -1,4 +1,6 @@
+import hashlib
 import numpy as np
+import os
 import pandas as pd
 import sqlite3
 from sqlite3 import Error
@@ -132,7 +134,7 @@ class EbirdObservations(Connection):
         :param lng_range: tuple of 2 floats for the lower and upper bounds for longitude
         :param max_dist (int): max kilometers traveled for the checklist for any observation we consider
             (any of further distance will be too noisy, and should be disreguarded)
-        :returns: num_checklists, num_bird_checklists, num_birds for the given square. 
+        :returns: num_checklists, num_bird_checklists, num_birds for the given square.
         """
         # First the number of checklists, with or without the bird.
         query_string=['select COUNT(*) FROM checklist where SQUARE = :square']
@@ -216,9 +218,9 @@ class EbirdObservations(Connection):
                           lat_range=None, lng_range=None, max_dist=2,
                           verbose=False):
         """
-        Get the checklists for a square, so that statistics can be computed. 
-        The result is returned as a dataframe. 
-        
+        Get the checklists for a square, so that statistics can be computed.
+        The result is returned as a dataframe.
+
         and total bird sightings, for a square.
         :param square: tuple of 2 floats, representing (lat, lng) of the square
         :param bird (str): name of bird
@@ -261,7 +263,7 @@ class EbirdObservations(Connection):
         if verbose:
             print("Query:", query_string)
         checklists_df = pd.read_sql_query(query_string, self.conn, params=d)
-        
+
         # Then, the number of checklists with the bird, and the total number of birds.
         query_string = ['select checklist."SAMPLING EVENT IDENTIFIER", ',
                         'observation."OBSERVATION COUNT"',
@@ -435,6 +437,44 @@ A module for common functionality in the validaiton process using ebird data
 """
 class Validation(object):
 
+    def __init__(self, obs_fn, geotiff_fn):
+        """
+        Generates a class for validation.
+        It first tries to read the cached version of obs_fn for the specified geotiff_fn.
+        If the cached version is not found, it is created.
+        The cached version contains pre-translated coordinates to pixel values.
+        :param obs_fn: Observations filename.
+        :param geotiff_fn: name of a geotiff (habitat is preferred) used
+            for translating coordinates to pixel coordinates.
+        """
+        self.obs_fn = obs_fn
+        self.geotiff_fn = geotiff_fn
+        h = hashlib.sha1(obs_fn.encode('utf-8'))
+        h.update(geotiff_fn.encode('utf-8'))
+        cached_fn = obs_fn + "." + h.hexdigest() + ".csv"
+        if not os.path.exists(cached_fn):
+            self._create_cached_observations(cached_fn)
+        self.observations = pd.read_csv(cached_fn)
+
+
+    def _create_cached_observations(self, cached_fn):
+        """Creates a cached version of the observations that also contains
+        pixel coordinates."""
+        geotiff = GeoTiff.from_file(self.geotiff_fn)
+        def f(row):
+            square = row["Square"]
+            if (isinstance(square, str)):
+                coords = self.format_coords(square)
+            else:
+                coords = square
+            lat, lng = coords
+            pix_x, pix_y = self.transform_coords(geotiff, coords)
+            return lat, lng, pix_x, pix_y
+        df = pd.read_csv(self.obs_fn)
+        df["lat"], df["lng"], df["pix_x"], df["pix_y"] = zip(*df.apply(f, axis=1))
+        df.to_csv(cached_fn)
+
+
     def format_coords(self, coords, bigsquare=False):
         """
         formats coords from the eBird database format '4406;-12131' to
@@ -568,23 +608,17 @@ class Validation(object):
             1 / count[(row.x // weighted_tile_size, row.y // weighted_tile_size)], axis=1)
         return df
 
-    def get_repop_ratios(self, df, repop_tif, hab_tif, tile_scale=3):
+    def get_repop_ratios(self, repop_tif, hab_tif, tile_scale=3):
         """
         Takes as input a dataframe containing columns Square (and possibly other columns), and
         adds to it columns for the total repopulation and amount of habitat.
-        :param df: dataframe for each square
         :param repop_tif: repopulation geotiff
         :param hab_tif: habitat geotiff used to compute repop
         :param tile_scale: size of the tile around square
         """
+        df = self.observations.copy()
         def f(row):
-            square = row["Square"]
-            if (isinstance(square, str)):
-                coords = self.format_coords(square)
-            else:
-                coords = square
-            lat, lng = coords
-            coords = self.transform_coords(repop_tif, coords)
+            coords = (row["pix_x"], row["pix_y"])
             repop_tile = repop_tif.get_tile_from_coord(coords, tile_scale=tile_scale)
             hab_tile = hab_tif.get_tile_from_coord(coords, tile_scale=tile_scale)
             if repop_tile is None or hab_tile is None:
@@ -593,42 +627,7 @@ class Validation(object):
             avg_hab = np.average(hab_tile.m)
             max_repop = np.max(repop_tile.m) / 255.
             max_hab = np.max(hab_tile.m)
-            return lat, lng, avg_repop, avg_hab, max_repop, max_hab
-        df["lat"], df["lng"], df["avg_repop"], df["avg_hab"], df["max_repop"], df["max_hab"] = zip(*df.apply(f, axis=1))
+            return avg_repop, avg_hab, max_repop, max_hab
+        df["avg_repop"], df["avg_hab"], df["max_repop"], df["max_hab"] = zip(*df.apply(f, axis=1))
+        return df
 
-
-    def get_repop_ratios_fast(self, df, repop_tif, hab_tif, tile_scale=3):
-        """
-        NOT TESTED
-        Takes as input a dataframe containing columns Square (and possibly other columns), and
-        adds to it columns for the total repopulation and amount of habitat.
-        :param df: dataframe for each square
-        :param repop_tif: repopulation geotiff
-        :param hab_tif: habitat geotiff used to compute repop
-        :param tile_scale: size of the tile around square
-        """
-        # Reads the geotiffs for repopulation and habitat.
-        hab = hab_tif.get_all_as_tile()
-        rep = repop_tif.get_all_as_tile()
-        def f(row):
-            square = row["Square"]
-            if (isinstance(square, str)):
-                coords = self.format_coords(square)
-            else:
-                coords = square
-            lat, lng = coords
-            crs_coords = self.transform_coords(repop_tif, coords)
-            xy = repop_tif.get_pixel_from_coord(crs_coords)
-            if xy is None:
-                return [pd.NA] * 6
-            x, y = xy
-            tile_x = x - (tile_scale / 2) if x - (tile_scale / 2) > 0 else 0
-            tile_y = y - (tile_scale / 2) if y - (tile_scale / 2) > 0 else 0
-            repop_tile = rep.m[tile_x : tile_x + tile_scale, tile_y : tile_y + tile_scale]
-            hab_tile = hab.m[tile_x : tile_x + tile_scale, tile_y : tile_y + tile_scale]
-            avg_repop = np.average(repop_tile) / 255.
-            max_repop = np.max(repop_tile) / 255.
-            avg_hab = np.average(hab_tile)
-            max_hab = np.max(hab_tile)
-            return lat, lng, avg_repop, avg_hab, max_repop, max_hab
-        df["lat"], df["lng"], df["avg_repop"], df["avg_hab"], df["max_repop"], df["max_hab"] = zip(*df.apply(f, axis=1))
