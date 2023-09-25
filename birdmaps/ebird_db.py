@@ -432,6 +432,37 @@ class EbirdObservations(Connection):
                 for sq in checklists_per_square}
 
 
+def format_coords(coords, bigsquare=False):
+    """
+    formats coords from the eBird database format '4406;-12131' to
+    tuple (44.06, -121.31) for (lat, lng) in WGS84 format
+    :param coords (str): coordinates in eBird database format (ie '4406;-12131')
+    :param bigsquare (bool): option is used in case these are big squares (one less decimal).
+    :returns: tuple (lat, long)
+    """
+    lat, long = coords.split(';')
+    if bigsquare:
+        lat = float(lat[:-1] + '.' + lat[-1:]) + 0.05
+        long = float(long[:-1] + '.' + long[-1:]) + 0.05
+    else:
+        lat = float(lat[:-2] + '.' + lat[-2:]) + 0.005
+        long = float(long[:-2] + '.' + long[-2:]) + 0.005
+    return (lat, long)
+
+
+def transform_coords(geotiff, coord):
+    """
+    transforms WGS84 coordinates to the same projection as the given geotiff
+    :param geotiff (scgt.GeoTiff): geotiff which we want our coordinates to map to
+    :param coords: tuple of 2 floats (lat, lng), representing coordinates in WGS84 format
+    :returns: tuple (lat, long) in the CRS of geotiff
+    """
+    lat, long = coord
+    transformer = Transformer.from_crs("WGS84", CRS.from_user_input(geotiff.crs), always_xy=True)
+    xx, yy = transformer.transform(long, lat)
+    return (xx, yy)
+
+
 """
 A module for common functionality in the validaiton process using ebird data
 """
@@ -464,45 +495,16 @@ class Validation(object):
         def f(row):
             square = row["Square"]
             if (isinstance(square, str)):
-                coords = self.format_coords(square)
+                coords = format_coords(square)
             else:
                 coords = square
             lat, lng = coords
-            pix_x, pix_y = self.transform_coords(geotiff, coords)
+            pix_x, pix_y = transform_coords(geotiff, coords)
             return lat, lng, pix_x, pix_y
         df = pd.read_csv(self.obs_fn)
         df["lat"], df["lng"], df["pix_x"], df["pix_y"] = zip(*df.apply(f, axis=1))
         df.to_csv(cached_fn)
 
-
-    def format_coords(self, coords, bigsquare=False):
-        """
-        formats coords from the eBird database format '4406;-12131' to
-        tuple (44.06, -121.31) for (lat, lng) in WGS84 format
-        :param coords (str): coordinates in eBird database format (ie '4406;-12131')
-        :param bigsquare (bool): option is used in case these are big squares (one less decimal).
-        :returns: tuple (lat, long)
-        """
-        lat, long = coords.split(';')
-        if bigsquare:
-            lat = float(lat[:-1] + '.' + lat[-1:]) + 0.05
-            long = float(long[:-1] + '.' + long[-1:]) + 0.05
-        else:
-            lat = float(lat[:-2] + '.' + lat[-2:]) + 0.005
-            long = float(long[:-2] + '.' + long[-2:]) + 0.005
-        return (lat, long)
-
-    def transform_coords(self, geotiff, coord):
-        """
-        transforms WGS84 coordinates to the same projection as the given geotiff
-        :param geotiff (scgt.GeoTiff): geotiff which we want our coordinates to map to
-        :param coords: tuple of 2 floats (lat, lng), representing coordinates in WGS84 format
-        :returns: tuple (lat, long) in the CRS of geotiff
-        """
-        lat, long = coord
-        transformer = Transformer.from_crs("WGS84", CRS.from_user_input(geotiff.crs), always_xy=True)
-        xx, yy = transformer.transform(long, lat)
-        return (xx, yy)
 
     def filter_CA_rectangle(self, observation_ratios, bigsquare=False):
         """
@@ -517,7 +519,7 @@ class Validation(object):
         ca_lat_min = 32
         result = {}
         for square, ratio in observation_ratios.items():
-            lat, lng = self.format_coords(square, bigsquare=bigsquare)
+            lat, lng = format_coords(square, bigsquare=bigsquare)
             if ca_lat_min <= lat <= ca_lat_max and ca_lng_min <= lng <= ca_lng_max:
                 result[square] = ratio
         return result
@@ -536,8 +538,8 @@ class Validation(object):
             with hab_f.clone_shape(output_path, no_data_value=-1, dtype='float32') as obsTiff:
                 for (square, observed) in observation_ratios:
                     if (isinstance(square, str)):
-                        square = self.format_coords(square, bigsquare=bigsquare)
-                    coord = self.transform_coords(obsTiff, square)
+                        square = format_coords(square, bigsquare=bigsquare)
+                    coord = transform_coords(obsTiff, square)
                     obsTiff.set_tile_from_coord(coord, observed * obs_multiplier, tile_scale)
 
     ### Correlation Functions ###
@@ -578,11 +580,11 @@ class Validation(object):
         count = defaultdict(int)
         for (square, ratio) in observation_ratios:
             if (isinstance(square, str)):
-                coords = self.format_coords(square, bigsquare=bigsquare)
+                coords = format_coords(square, bigsquare=bigsquare)
             else:
                 coords = square
             lat, lng = coords
-            coords = self.transform_coords(repop_tif, coords)
+            coords = transform_coords(repop_tif, coords)
             repop_tile = repop_tif.get_tile_from_coord(coords, tile_scale=tile_scale)
             hab_tile = hab.get_tile_from_coord(hab, coords, tile_scale=tile_scale)
             if repop_tile is None or hab_tile is None:
