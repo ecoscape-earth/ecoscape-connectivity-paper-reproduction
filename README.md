@@ -22,7 +22,7 @@ The code in this repository enables the reproduction of the results of the EcoSc
 
 You will need two datasets. 
 
-* [`CA-Final.zip`](https://drive.google.com/file/d/1YUydTycc8nJ7OT8JsaS_ZYnDcOBLGFH0/view?usp=sharing) : this provides the habitat and terrain info for the birds, as well as the terrain permeabilities.  You can regenerate this data with the appropriate packages, but it's very convenient to have.  Download the file, put it into the `data` folder, and unzip it. 
+* [`CA-Final.zip`](https://drive.google.com/file/d/1cX_2uJanP1uP9JIWXbwIfCg5oBjfkMHJ/view?usp=sharing) : this provides the habitat and terrain info for the birds, as well as the terrain permeabilities.  You can regenerate this data with the appropriate packages, but it's very convenient to have.  Download the file, put it into the `data` folder, and unzip it. 
 * `bird-data-uswest.db` : An Sqlite database containing all eBird observations in the Western part of the US. As we are not allowed to redistribute eBird data, you will have to build this database yourself. You can find [detailed instructions](ebird_data/README.md) in the `ebird_data` folder.  It is a process that may take a few days.  
 
 The above database is not strictly necessary.  It is used to generate, in California, the list of locations where people birded, along with the average sightings of a bird per checklist in those locations.  We provide these location lists; the database is only necessary if you wish to recreate them. 
@@ -48,6 +48,8 @@ Many notebooks at the beginning define these constants; you may need to change t
 * `LOCAL_PATH`: Path in the local file system where a copy of CA-EcoScape-Paper can be found. 
 
 ## File locations. 
+
+### EcoScape
 
 Before one starts, it is useful to take a look at `ecoscape_utilities.BirdRun`.
 That file describes the location of every input and output. 
@@ -83,7 +85,11 @@ The main files generated are:
 * `Data/CA/{bird}/Observations/CA_all_len_{l}_2012-01-01-2018-12-31_20000.csv` contain data on all bird observations in checklists of length at least `l` in a given date range, limited to 20,000 observation locations if necessary.  Generally, for the given date range, there were a few more than 18,000 observation locations (technically, squares; see `ebird_data/README.md`).  We used value 2 for `l`. 
 * `Data/CA/{bird}/Output/{run_name}/obs_{num_spreads}_hop_{hop_distance}_sims_{num_simulations}.csv` is a Pandas dataframe containing data with the repopulation value, and sightings, of a bird at the various locations.  These dataframes are read by the code that generates the validation graphs. 
 
-## Reproducing The Results
+### Omniscape
+
+There is an `Omniscape` folder with what is needed to reproduce the Omniscape run results; see later for instructions. 
+
+## Reproducing The EcoScape Results
 
 ### Generating Terrain and Habitats 
 
@@ -117,8 +123,14 @@ num_sample_squares = 20000 # Sampling number for the squares.
 > Step (transmission), depends(habitat). 
 
 This step is not strictly necessary, as we provide the output already. 
-If you have used IUCN data to obtain `{bird}/resistance.csv`, then you  can run [`RefineResistanceWithForestTerrain.ipynb`](RefineResistanceWithForestTerrain.ipynb) to generate the values of terrain permeability we use. 
-The output is stored in `{bird}/transmission_refined_1.csv`, which contains the permeability values. 
+If you wish to recompute the terrain permeability, there are two steps. 
+
+The first step consists in running the notebook [`TerrainHistograms.ipynb`](TerrainHistograms.ipynb).  This notebook generates a histogram of bird sightings according to landcover type, considering all seasons (and not only breeding season).
+It leaves the output in the files `data/CA-Final/{bird}/terrain_hist.*`. 
+
+The second steps consists in merging the file `{bird}/resistance.csv`, derived from IUCN data, with the above histograms.  To do so, run the notebook [`RefineResistanceWithEbirdData.ipynb`](RefineResistanceWithEbirdData.ipynb). 
+This will generate the `data/CA-Final/{bird}/transmission_refined_1.csv` files that are used.  Note that a copy of these files is also present in the Omniscape folders. 
+These files are csv files that map landcover type to landcover permeability. 
 
 ### Compute the connectivity and flow layers. 
 
@@ -189,3 +201,32 @@ We provide it as run, with the results used for the paper.
 ### Computing FCA
 
 This is done in [`ComputingFCA.ipynb`](ComputingFCA.ipynb); the notebook also computes the percentage error for Acorn Woodpecker in using 400 vs 10000 simulations. 
+
+## Omniscape Comparison
+
+To reproduce the results of the comparison with Omniscape, proceed as follows. 
+
+### Generation of conductance layers
+
+Omniscape needs conductance layers as input.  To generate them, run the notebook [`PrepareOmniscapeLayers.ipynb`](data/Omniscape/PrepareOmniscapeLayers.ipynb). 
+
+### Run Omniscape
+
+```
+cd data/Omniscape
+julia
+```
+
+Then: 
+
+```
+using Pkg; Pkg.add("Omniscape")
+using Omniscape;
+run_omniscape("OmniscapeRunAcowooCA.ini")
+run_omniscape("OmniscapeRunStejayCA_h2_S3.ini")
+```
+
+### Analyze Omniscape Results
+
+This is done via two notebooks.  First run [`ValidationOmniscape.ipynb`](ValidationOmniscape.ipynb) to generate the validation dataframes. 
+Then, run [`DisplayValidationResultsOmniscape.ipynb`](DisplayValidationResultsOmniscape.ipynb) to visualize the results and produce the figures. 
