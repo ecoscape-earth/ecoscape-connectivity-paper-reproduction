@@ -8,4 +8,5 @@ __pycache__/*
 .vscode/*
 data/*
 Figures/*
-
+!data/Omniscape/
+data/Omniscape/output
