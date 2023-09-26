@@ -10,3 +10,6 @@ data/*
 Figures/*
 !data/Omniscape/
 data/Omniscape/output
+data/Omniscape/acowoo/CroppedLayers
+data/Omniscape/*/*/transmission.tif*
+data/Omniscape/*/CA*.csv.*.csv
