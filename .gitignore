@@ -7,7 +7,6 @@ __pycache__/*
 */.DS_Store
 .vscode/*
 data/*
-Figures/*
 !data/Omniscape/
 data/Omniscape/output
 data/Omniscape/acowoo/CroppedLayers
