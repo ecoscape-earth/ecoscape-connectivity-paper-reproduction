@@ -11,6 +11,17 @@ The code in this repository enables the reproduction of the results of the EcoSc
 * Jasmine Tai
 * Natalie Valett
 
+## Code archives
+
+The code used has been archived as follows: 
+
+* [![DOI](https://zenodo.org/badge/685242288.svg)](https://zenodo.org/badge/latestdoi/685242288) ecoscape-connectivity package
+* [![DOI](https://zenodo.org/badge/653817230.svg)](https://zenodo.org/badge/latestdoi/653817230) ecoscape-layers package
+* [![DOI](https://zenodo.org/badge/685286549.svg)](https://zenodo.org/badge/latestdoi/685286549) ecoscape-utils repository
+* [![DOI](https://zenodo.org/badge/684909723.svg)](https://zenodo.org/badge/latestdoi/684909723) scgt package
+
+It is generally more practical to use these packages from pypi or github (using `pip install`), but the above versions should be archival.
+
 ## Repository Organization
 
 * `birdmaps` contains some code that is used specifically for the paper, and that is imported in the notebooks. 
@@ -22,7 +33,7 @@ The code in this repository enables the reproduction of the results of the EcoSc
 
 You will need two datasets. 
 
-* [`CA-Final.zip`](https://drive.google.com/file/d/1cX_2uJanP1uP9JIWXbwIfCg5oBjfkMHJ/view?usp=sharing) : this provides the habitat and terrain info for the birds, as well as the terrain permeabilities.  You can regenerate this data with the appropriate packages, but it's very convenient to have.  Download the file, put it into the `data` folder, and unzip it. 
+* [`CA-Final.zip`](https://doi.org/10.5281/zenodo.8395850) : this provides the habitat and terrain info for the birds, as well as the terrain permeabilities.  You can regenerate this data with the appropriate packages, but it's very convenient to have.  Download the file, put it into the `data` folder, and unzip it. 
 * `bird-data-uswest.db` : An Sqlite database containing all eBird observations in the Western part of the US. As we are not allowed to redistribute eBird data, you will have to build this database yourself. You can find [detailed instructions](ebird_data/README.md) in the `ebird_data` folder.  It is a process that may take a few days.  
 
 The above database is not strictly necessary.  It is used to generate, in California, the list of locations where people birded, along with the average sightings of a bird per checklist in those locations.  We provide these location lists; the database is only necessary if you wish to recreate them. 
