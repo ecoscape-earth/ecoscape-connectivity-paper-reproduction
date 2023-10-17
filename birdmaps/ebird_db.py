@@ -610,7 +610,7 @@ class Validation(object):
             1 / count[(row.x // weighted_tile_size, row.y // weighted_tile_size)], axis=1)
         return df
 
-    def get_repop_ratios(self, repop_tif, hab_tif, tile_scale=3):
+    def get_repop_ratios(self, repop_tif, hab_tif, tile_scale=3, div_by_255=True):
         """
         Takes as input a dataframe containing columns Square (and possibly other columns), and
         adds to it columns for the total repopulation and amount of habitat.
@@ -625,10 +625,13 @@ class Validation(object):
             hab_tile = hab_tif.get_tile_from_coord(coords, tile_scale=tile_scale)
             if repop_tile is None or hab_tile is None:
                 return pd.NA, pd.NA
-            avg_repop = np.average(repop_tile.m) / 255.
+            avg_repop = np.average(repop_tile.m)
             avg_hab = np.average(hab_tile.m)
-            max_repop = np.max(repop_tile.m) / 255.
+            max_repop = np.max(repop_tile.m)
             max_hab = np.max(hab_tile.m)
+            if div_by_255:
+                avg_repop /= 255.
+                max_repop /= 255.
             return avg_repop, avg_hab, max_repop, max_hab
         df["avg_repop"], df["avg_hab"], df["max_repop"], df["max_hab"] = zip(*df.apply(f, axis=1))
         return df
