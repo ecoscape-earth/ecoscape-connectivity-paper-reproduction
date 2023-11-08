@@ -58,12 +58,10 @@ Many notebooks at the beginning define these constants; you may need to change t
 * `REMOTE_PATH` : Path on Google Drive to the folder where you put the CA-EcoScape-Paper data. 
 * `LOCAL_PATH`: Path in the local file system where a copy of CA-EcoScape-Paper can be found. 
 
-## File locations. 
-
 ### EcoScape
 
 Before one starts, it is useful to take a look at `ecoscape_utilities.BirdRun`.
-That file describes the location of every input and output. 
+That file describes the location of input and output files. 
 There: 
 
 * A bird name is its English name, such as "Acorn Woodpecker". 
@@ -100,6 +98,10 @@ The main files generated are:
 
 There is an `Omniscape` folder with what is needed to reproduce the Omniscape run results; see later for instructions. 
 
+## Simulated Landscape
+
+These are produced by the [`SimulatedLandscapes.ipynb`](SimulatedLandscapes.ipynb) notebook. 
+
 ## Reproducing The EcoScape Results
 
 ### Generating Terrain and Habitats 
@@ -108,6 +110,11 @@ There is an `Omniscape` folder with what is needed to reproduce the Omniscape ru
 
 This uses the `GenerateLayers.ipynb` notebook to create the habitat layers, landcover matrix layer, and resistance dictionaries for a list of bird species. 
 We provide already the results for this step, so it can be skipped if desired. 
+
+**Note:** eBird no longer provides the layers we used, as of Fall 2023.  
+Thus, the notebook can no longer be run. 
+We provide its result, namely, the terrain and habitat layers for all species. 
+The new `ecoscape_layers` package works with 2022 eBird layers, which differ slightly from the ones we used for the paper; thus, small differences in output can be expected if one runs the updated package. 
 
 ### Prepare the observation data for the validation
 
@@ -241,3 +248,18 @@ run_omniscape("OmniscapeRunStejayCA_h2_S3.ini")
 
 This is done via two notebooks.  First run [`ValidationOmniscape.ipynb`](ValidationOmniscape.ipynb) to generate the validation dataframes. 
 Then, run [`DisplayValidationResultsOmniscape.ipynb`](DisplayValidationResultsOmniscape.ipynb) to visualize the results and produce the figures. 
+
+## Comparison With Patch Sizes
+
+### Computing the Patch Sizes
+
+To compute the patch sizes, you can use the [`ComputePatchSizes.ipynb`](ComputePatchSizes.ipynb) notebook.  
+We ran it on Google Colab, using A100 GPUs; the time is about 30s for both bird species. 
+
+### Analyze Patch Size Results
+
+This is done via two notebooks. 
+First run [`ValidatonConnectivityAsPatches.ipynb`](ValidationConnectivityAsPatches.ipynb), to generate the validation dataframes that contain the raw data. 
+Then, run [`DisplayValidationResults-PatchSize.ipynb`](DisplayValidationResults-PatchSize.ipynb) to produce the figures. 
+
+
