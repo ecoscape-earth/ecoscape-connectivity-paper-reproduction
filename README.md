@@ -15,10 +15,11 @@ The code in this repository enables the reproduction of the results of the EcoSc
 
 The code used has been archived as follows: 
 
-* [![DOI](https://zenodo.org/badge/685242288.svg)](https://zenodo.org/badge/latestdoi/685242288) ecoscape-connectivity package
-* [![DOI](https://zenodo.org/badge/653817230.svg)](https://zenodo.org/badge/latestdoi/653817230) ecoscape-layers package
-* [![DOI](https://zenodo.org/badge/685286549.svg)](https://zenodo.org/badge/latestdoi/685286549) ecoscape-utils repository
-* [![DOI](https://zenodo.org/badge/684909723.svg)](https://zenodo.org/badge/latestdoi/684909723) scgt package
+* [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.8395862.svg)](https://doi.org/10.5281/zenodo.8395862) ecoscape-connectivity
+* [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.8395867.svg)](https://doi.org/10.5281/zenodo.8395867)
+ ecoscape-layers
+* [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.8395869.svg)](https://doi.org/10.5281/zenodo.8395869) ecoscape-utils repository
+* [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.8395864.svg)](https://doi.org/10.5281/zenodo.8395864) scgt package
 
 It is generally more practical to use these packages from pypi or github (using `pip install`), but the above versions should be archival.
 
