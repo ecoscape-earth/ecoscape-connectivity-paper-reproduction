@@ -159,6 +159,7 @@ Upload to colab the notebook [`ConnectivityAndFlow.ipynb`](ConnectivityAndFlow.i
 
 We recommend running this on A100 GPUs; the T4 also may work (except it might go out of memory for the flow layer; you can reduce the tile size to 1024 x 1024). 
 There are three cells at the end that do the runs: 
+
 * `run_birds` does the sensitivity analysis, with 400 simulations, generating the `Paper` output.  This takes about two hours. 
 * `run_birds_details` generates the `Paper10000` output, used for the graphs relating observations to connectivity. This takes less than one hour. 
 * `run_birds_gradient` generates the `Gradient` output, used for the initial figure for the Acorn Woodpecker, connectivity and flow layers. This takes about 3-5 minutes. 
@@ -204,6 +205,8 @@ The notebook [`EstimateRunningTime.ipynb`](EstimateRunningTime.ipynb) was run on
 We give here the notebook that produced the timing results, with its original output. 
 If the type of GPUs or CPUs available on Colab changes, these numbers might change. 
 These numbers were obtained on September 21, 2023, on A100 GPUs on Google Colab. 
+
+***Note:*** The cells that contain GPU computation need to be run _more than once_ in order to yield accurate results.  This is because the first time a GPU-accelereated computation is run, the GPU is initialized, and this takes a few seconds.  The second time, the initialization is not needed.
 
 ### Estimate Accuracy
 
