@@ -98,7 +98,7 @@ The main files generated are:
 
 ### Omniscape
 
-There is an `Omniscape` folder with what is needed to reproduce the Omniscape run results; see later for instructions. 
+There is an `CA-Final/Omniscape` folder with what is needed to reproduce the Omniscape run results; see later for instructions. 
 
 ## Simulated Landscape
 
