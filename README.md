@@ -34,12 +34,13 @@ It is generally more practical to use these packages from pypi or github (using 
 
 You will need two datasets. 
 
-* [`CA-Final.zip`](https://doi.org/10.5281/zenodo.8395850) : this provides the habitat and terrain info for the birds, as well as the terrain permeabilities.  You can regenerate this data with the appropriate packages, but it's very convenient to have.  Download the file, put it into the `data` folder, and unzip it. 
+* [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10155746.svg)](https://doi.org/10.5281/zenodo.10155746)
+ [`CA-Final.zip`](https://doi.org/10.5281/zenodo.10155746) : this provides the habitat and terrain info for the birds, as well as the terrain permeabilities.  You can regenerate this data with the appropriate packages, but it's very convenient to have.  Download the file, put it into the `data` folder, and unzip it. 
 * `bird-data-uswest.db` : An Sqlite database containing all eBird observations in the Western part of the US. As we are not allowed to redistribute eBird data, you will have to build this database yourself. You can find [detailed instructions](ebird_data/README.md) in the `ebird_data` folder.  It is a process that may take a few days.  
 
-The above database is not strictly necessary.  It is used to generate, in California, the list of locations where people birded, along with the average sightings of a bird per checklist in those locations.  We provide these location lists; the database is only necessary if you wish to recreate them. 
+The above database of eBird data is not strictly necessary.  It is used to generate, in California, the list of locations where people birded, along with the average sightings of a bird per checklist in those locations.  We provide these location lists; the database is only necessary if you wish to recreate them. 
 
-Additionally, the database is needed to analyze the nature of noise in bird observations, and precisely, the amounts of _location noise_ (difference between bird frequency at similar locations) vs. _checklist noise_ (difference between bird frequency in different checklists at the same location).  This is a point that is rather tangential to the paper, and only mentioned in the methods. 
+Additionally, the database is needed to analyze the nature of noise in bird observations, and precisely, the amounts of _location noise_ (difference between bird frequency at similar locations) vs. _checklist noise_ (difference between bird frequency in different checklists at the same location).  This is a point that is rather tangential to the paper, and only mentioned in the supplementary material. 
 
 ## Where to put Data and Computation
 
@@ -103,7 +104,7 @@ There is an `Omniscape` folder with what is needed to reproduce the Omniscape ru
 
 These are produced by the [`SimulatedLandscapes.ipynb`](SimulatedLandscapes.ipynb) notebook. 
 
-## Reproducing The EcoScape Results
+## Reproducing The EcoScape / Omniscape / Patch Size Results
 
 ### Generating Terrain and Habitats 
 
@@ -151,11 +152,17 @@ The second steps consists in merging the file `{bird}/resistance.csv`, derived f
 This will generate the `data/CA-Final/{bird}/transmission_refined_1.csv` files that are used.  Note that a copy of these files is also present in the Omniscape folders. 
 These files are csv files that map landcover type to landcover permeability. 
 
+The notebook [`GeneratePermeabilityTables.ipynb`](GeneratePermeabilityTables.ipynb) generates the tables of landcover type permeability included, with minor esthetical edits, in the paper. 
+
 ### Compute the connectivity and flow layers. 
 
-Step (repopulation), depends(transmission). 
+> Step (repopulation), depends(transmission). 
 
-Upload to colab the notebook [`ConnectivityAndFlow.ipynb`](ConnectivityAndFlow.ipynb) and run it. 
+There are three substeps, for EcoScape, Omniscape, and patch size analysis. 
+
+#### EcoScape
+
+Upload to Google Colab the notebook [`ConnectivityAndFlow.ipynb`](ConnectivityAndFlow.ipynb) and run it. 
 
 We recommend running this on A100 GPUs; the T4 also may work (except it might go out of memory for the flow layer; you can reduce the tile size to 1024 x 1024). 
 There are three cells at the end that do the runs: 
@@ -164,82 +171,22 @@ There are three cells at the end that do the runs:
 * `run_birds_details` generates the `Paper10000` output, used for the graphs relating observations to connectivity. This takes less than one hour. 
 * `run_birds_gradient` generates the `Gradient` output, used for the initial figure for the Acorn Woodpecker, connectivity and flow layers. This takes about 3-5 minutes. 
 
-### Compute the current maps with Omniscape. 
-
-You can find in [Omniscape.zip](https://drive.google.com/file/d/1YPiY5zyBAT3qBHOp4vnAHr4EP5FB5Unq/view?usp=sharing) the layers and run definitions for Omniscape.  You may rerun this if you wish; we provide already the results.  See the README file there for more details.  
-
-### Generates the validation dataframes
-
-Step (validation) depends(prepare_validation, repopulation).
-
-In this step, we read the output connectivity layers for the birds, and we correlate the connectivity with the ebird sightings (the information produced in Step (prepare_validation)). 
-The process takes a long time, because for each geographical location computed in Step (prepare_validation), we need to sample the connectivity and habitat layers at the correct pixels, and this is not immediate. For the complete set of runs, this may take some hours.   
-This takes a while to run, as it needs to read all the various terrains, and write all the results. 
-
-There are various notebooks used in this step: 
-
-* `Validation.ipynb` generates the validation data for the EcoScape output.  
-* `ValidationOmniscape.ipynb` generates the validation data for the Omniscape output. 
-
-### Display the validation results.
-
-Step (validation_results) depends(validation). 
-
-This loads the dataframes generated by the previous step, and produces all the figures related to the correlation between habitat connectivity and ebird sightings. 
-You can display two kinds of validation results: sensitivity analysis, and sightings vs. connectivity graphs. 
-
-#### Sensitivity analysis
-
-Use the notebook [`DisplayValidationResults-Sensitivity.ipynb`](DisplayValidationResults-Sensitivity.ipynb). 
-
-#### Sightings vs. connectivity graphs
-
-Use the notebooks:
-* [`DisplayValidationResults-Graphs.ipynb`](DisplayValidationResults-Graphs.ipynb) for Ecoscape; 
-* [`DisplayValidationResults-Omniscape.ipynb`](DisplayValidationResultsOmniscape.ipynb) for Omniscape. 
-
-### Estimate Running Time
-
-The notebook [`EstimateRunningTime.ipynb`](EstimateRunningTime.ipynb) was run on Colab, and yielded the running times. 
-
-We give here the notebook that produced the timing results, with its original output. 
-If the type of GPUs or CPUs available on Colab changes, these numbers might change. 
-These numbers were obtained on September 21, 2023, on A100 GPUs on Google Colab. 
-
+To obtain a clean estimation of EcoScape running time, we used the [`EstimateRunningTime.ipynb`](EstimateRunningTime.ipynb) on Google Colab, run on September 21, 2023, on A100 GPUs; the notebook above is the one we used to obtain the running times.
 ***Note:*** The cells that contain GPU computation need to be run _more than once_ in order to yield accurate results.  This is because the first time a GPU-accelereated computation is run, the GPU is initialized, and this takes a few seconds.  The second time, the initialization is not needed.
 
-### Estimate Accuracy
+#### Omniscape
 
-The notebook [`EstimateAccuracy.ipynb`](EstimateAccuracy.ipynb) is the one we used to estimate the accuracy (standard deviation) with which the connectivity of the flow layer is computed.  It is here reproduces as-is, with the original outputs.  
-This notebook needs to be run on Colab, or on a machine with fast GPUs; we used A100 GPUs on Colab. 
+First, you need to run the notebook [`PrepareOmniscapeLayers.ipynb`](data/Omniscape/PrepareOmniscapeLayers.ipynb) to generate the conductance layers needed by Omniscape.
 
-### Analyze Checklist Noise
-
-This is a step that requires the database. 
-
-The notebook [`AnalyzeEbirdNoise.ipynb`](AnalyzeEbirdNoise.ipynb) analyzes the noise in checklists, determining whether location noise or checklist noise is predominant. 
-We provide it as run, with the results used for the paper. 
-
-### Computing FCA
-
-This is done in [`ComputingFCA.ipynb`](ComputingFCA.ipynb); the notebook also computes the percentage error for Acorn Woodpecker in using 400 vs 10000 simulations. 
-
-## Omniscape Comparison
-
-To reproduce the results of the comparison with Omniscape, proceed as follows. 
-
-### Generation of conductance layers
-
-Omniscape needs conductance layers as input.  To generate them, run the notebook [`PrepareOmniscapeLayers.ipynb`](data/Omniscape/PrepareOmniscapeLayers.ipynb). 
-
-### Run Omniscape
+Then, you need to run Omniscape.
+To do so, you need to install Julia, and then run the following commands: 
 
 ```
-cd data/Omniscape
+cd data/CA-Final/Omniscape
 julia
 ```
 
-Then: 
+Then, in the Julia prompt: 
 
 ```
 using Pkg; Pkg.add("Omniscape")
@@ -248,22 +195,66 @@ run_omniscape("OmniscapeRunAcowooCA.ini")
 run_omniscape("OmniscapeRunStejayCA_h2_S3.ini")
 ```
 
-### Analyze Omniscape Results
+This step is also used to generate the Omniscape running time. 
 
-This is done via two notebooks.  First run [`ValidationOmniscape.ipynb`](ValidationOmniscape.ipynb) to generate the validation dataframes. 
-Then, run [`DisplayValidationResultsOmniscape.ipynb`](DisplayValidationResultsOmniscape.ipynb) to visualize the results and produce the figures. 
-
-## Comparison With Patch Sizes
-
-### Computing the Patch Sizes
+#### Patch Size Analysis
 
 To compute the patch sizes, you can use the [`ComputePatchSizes.ipynb`](ComputePatchSizes.ipynb) notebook.  
 We ran it on Google Colab, using A100 GPUs; the time is about 30s for both bird species. 
+This step is also used to obtain the running times for the patch size analysis.
 
-### Analyze Patch Size Results
+### Computing FCH
 
-This is done via two notebooks. 
-First run [`ValidatonConnectivityAsPatches.ipynb`](ValidationConnectivityAsPatches.ipynb), to generate the validation dataframes that contain the raw data. 
-Then, run [`DisplayValidationResults-PatchSize.ipynb`](DisplayValidationResults-PatchSize.ipynb) to produce the figures. 
+> Step (fch), depends(repopulation)
 
+The FCH (Functionally Connected Habitat) is the sum of the connectivity over the area of habitat, and gives an estimate of the amount of habitat that is functionally connected.
+The FCH is computed in [`ComputingFCH.ipynb`](ComputingFCH.ipynb); the notebook also computes the percentage error for Acorn Woodpecker in using 400 vs 10000 simulations. 
 
+### Generates the validation dataframes
+
+> Step (validation) depends(prepare_validation, repopulation).
+
+In this step, we read the output connectivity layers for the birds, and we correlate the connectivity with the ebird sightings (the information produced in Step (prepare_validation)). 
+The process takes a long time, because for each geographical location computed in Step (prepare_validation), we need to sample the connectivity and habitat layers at the correct pixels, and this is not immediate. For the complete set of runs, this may take some hours.   
+This takes a while to run, as it needs to read all the various terrains, and write all the results. 
+
+You need to run these notebooks: 
+
+* [`Validation.ipynb`](Validation.ipynb) generates the validation data for the EcoScape output.  
+* [`ValidationOmniscape.ipynb`](ValidationOmniscape.ipynb) generates the validation data for the Omniscape output. 
+* [`ValidationConnectivityAsPatches.ipynb`](ValidationConnectivityAsPatches.ipynb) generates the validation data for the patch size analysis.
+
+### Display the validation results.
+
+> Step (validation_results) depends(validation). 
+
+The following three notebooks display the validation results, and in particular, the graphs of sightings vs. connectivity.
+The notebooks also compute the coefficients R^2 of determination that are given in the paper. 
+
+* [`DisplayValidationResults-Graphs.ipynb`](DisplayValidationResults-Graphs.ipynb) for Ecoscape; 
+* [`DisplayValidationResults-Omniscape.ipynb`](DisplayValidationResultsOmniscape.ipynb) for Omniscape; 
+* [`DisplayValidationResults-PatchSize.ipynb`](DisplayValidationResults-PatchSize.ipynb) for the patch size analysis.
+
+This loads the dataframes generated by the previous step, and produces all the figures related to the correlation between habitat connectivity and ebird sightings. 
+
+***Sensitivity Analysis.***
+In addition, you can also run the sensitivity analysis for the EcoScape results, which explores the effect of gap-crossing and dispersal distance on the coefficient of determination between sightings and connectivity. 
+Use the notebook [`DisplayValidationResults-Sensitivity.ipynb`](DisplayValidationResults-Sensitivity.ipynb). 
+This generates the sensitivity analysis figure in the supplementary material. 
+
+### Estimate EcoScape Accuracy
+
+> Step (estimate_accuracy) depends(transmission).
+
+The notebook [`EstimateAccuracy.ipynb`](EstimateAccuracy.ipynb) is the one we used to estimate the accuracy (standard deviation) with which the connectivity is computed. 
+It is here reproduces as-is, with the original outputs.  
+To compute the standard deviation, the notebook performs a number of simulations, and then computes the standard deviation of the connectivity. 
+The process is computation-itensive; the notebook needs to be run on Colab, or on a machine with fast GPUs; we used A100 GPUs on Colab. 
+
+### Analyze eBird Checklist Noise
+
+> Step (checklist_noise) depends(validation).
+
+This is a step that requires the database. 
+The notebook [`AnalyzeEbirdNoise.ipynb`](AnalyzeEbirdNoise.ipynb) analyzes the noise in checklists, determining whether location noise or checklist noise is predominant. 
+We provide it as run, with the results used for the paper. 
