@@ -13,15 +13,16 @@ The code in this repository enables the reproduction of the results of the EcoSc
 
 ## Code archives
 
-The code used has been archived as follows: 
+The code used comprises 4 packages, which are available in archival form:
 
 * [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.8395862.svg)](https://doi.org/10.5281/zenodo.8395862) ecoscape-connectivity
 * [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.8395867.svg)](https://doi.org/10.5281/zenodo.8395867)
  ecoscape-layers
-* [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.8395869.svg)](https://doi.org/10.5281/zenodo.8395869) ecoscape-utils repository
-* [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.8395864.svg)](https://doi.org/10.5281/zenodo.8395864) scgt package
+* [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.8395869.svg)](https://doi.org/10.5281/zenodo.8395869) ecoscape-utils
+* [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.8395864.svg)](https://doi.org/10.5281/zenodo.8395864) scgt
 
-It is generally more practical to use these packages from pypi or github (using `pip install`), but the above versions should be archival.
+For general use, these packages can be installed from the Python package repository pypi via `pip install`. 
+For reproducibility, we recommend using the archived versions, since the packages on pypi may have been updated since the paper was written.
 
 ## Repository Organization
 
@@ -34,8 +35,8 @@ It is generally more practical to use these packages from pypi or github (using 
 
 You will need two datasets. 
 
-* [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10155746.svg)](https://doi.org/10.5281/zenodo.10155746)
- [`CA-Final.zip`](https://doi.org/10.5281/zenodo.10155746) : this provides the habitat and terrain info for the birds, as well as the terrain permeabilities.  You can regenerate this data with the appropriate packages, but it's very convenient to have.  Download the file, put it into the `data` folder, and unzip it. 
+* [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.8395850.svg)](https://doi.org/10.5281/zenodo.8395850)
+ [`CA-Final.zip`](https://zenodo.org/doi/10.5281/zenodo.8395850) : this provides the habitat and terrain info for the birds, as well as the terrain permeabilities.  You can regenerate this data with the appropriate packages, but it's very convenient to have.  Download the file, put it into the `data` folder, and unzip it. 
 * `bird-data-uswest.db` : An Sqlite database containing all eBird observations in the Western part of the US. As we are not allowed to redistribute eBird data, you will have to build this database yourself. You can find [detailed instructions](ebird_data/README.md) in the `ebird_data` folder.  It is a process that may take a few days.  
 
 The above database of eBird data is not strictly necessary.  It is used to generate, in California, the list of locations where people birded, along with the average sightings of a bird per checklist in those locations.  We provide these location lists; the database is only necessary if you wish to recreate them. 
@@ -98,7 +99,7 @@ The main files generated are:
 
 ### Omniscape
 
-There is an `CA-Final/Omniscape` folder with what is needed to reproduce the Omniscape run results; see later for instructions. 
+There is a `CA-Final/Omniscape` folder with what is needed to reproduce the Omniscape run results; see later for instructions. 
 
 ## Simulated Landscape
 
@@ -205,7 +206,7 @@ This step is also used to obtain the running times for the patch size analysis.
 
 ### Computing FCH
 
-> Step (fch), depends(repopulation)
+> Step (fch), depends(repopulation).
 
 The FCH (Functionally Connected Habitat) is the sum of the connectivity over the area of habitat, and gives an estimate of the amount of habitat that is functionally connected.
 The FCH is computed in [`ComputingFCH.ipynb`](ComputingFCH.ipynb); the notebook also computes the percentage error for Acorn Woodpecker in using 400 vs 10000 simulations. 
